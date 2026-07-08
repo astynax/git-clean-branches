@@ -23,7 +23,8 @@ class App:
     """
 
     cli = ArgumentParser(
-        "git-clean-branches", description=('Deletes Git branches those are "gone"'),
+        "git-clean-branches",
+        description=('Deletes Git branches those are "gone"'),
     )
     cli.add_argument("--fetch", action="store_true", help=("do 'git fetch' first"))
     cli.add_argument(
@@ -87,34 +88,35 @@ class App:
         except ProcessExecutionError:
             print("Can't list local branches.")
             sys.exit(4)
+        # fmt: off
         self.gone_branches = [
             b.split(maxsplit=1)[0]
             for b in branches.split("\n")
             if ": gone" in b
         ]
+        # fmt: on
 
     def _enumerate_and_print_branches(self):
-        print("These branches are \"gone\" (don't have remotes anymore):\n")
+        print('These branches are "gone" (don\'t have remotes anymore):\n')
         self.branch_map = dict[int, str]()
         for i, b in enumerate(self.gone_branches, start=1):
             self.branch_map[i] = b
             print(f"{i:d}) {b}")
         print()
 
-
     def _select_branches(self):
         typed = input(
-            "Choose branches to delete "
-            "(comma-separated numbers, empty means ALL):",
+            "Choose branches to delete (comma-separated numbers, empty means ALL):",
         )
         if typed:
+            # fmt: off
             self.selected = sorted(
                 k for k in (int(s) for s in typed.split(","))
                 if k in self.branch_map
             )
+            # fmt: on
         else:
             self.selected = sorted(self.branch_map.keys())
-
 
     def _confirm_deletion(self):
         print(warn | "\nThese LOCAL branches will be DELETED:\n")
