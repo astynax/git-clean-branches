@@ -22,18 +22,23 @@ class App:
     It exposes an entry-point and contains all the app's logic.
     """
 
-    cli = ArgumentParser("git-clean-branches", description=(
-        'Deletes Git branches those are "gone"'
-    ))
-    cli.add_argument("--fetch", action="store_true", help=(
-        "do 'git fetch' first"
-    ))
+    cli = ArgumentParser(
+        "git-clean-branches", description=('Deletes Git branches those are "gone"'),
+    )
+    cli.add_argument("--fetch", action="store_true", help=("do 'git fetch' first"))
+    cli.add_argument(
+        "-D",
+        "--force-delete",
+        action="store_true",
+        help=("delete Git branches forcefully (call 'git branch -D')"),
+    )
 
     do_fetch: bool
     gone_branches: list[str]
     branch_map: dict[int, str]
     selected: list[int]
     do_delete: bool
+    force_delete: bool
 
     @classmethod
     def main(cls) -> None:
@@ -55,6 +60,7 @@ class App:
     def _parse_cli(self):
         options = self.cli.parse_args()
         self.do_fetch = options.fetch
+        self.force_delete = options.force_delete
 
     def _require_remote(self):
         try:
@@ -67,7 +73,6 @@ class App:
             print("Can't clean anything because no remotes found.")
             sys.exit(2)
 
-
     def _fetch(self):
         if self.do_fetch:
             try:
@@ -75,7 +80,6 @@ class App:
             except ProcessExecutionError:
                 print("Can't fetch the remote.")
                 sys.exit(3)
-
 
     def _collect_gone_branches(self):
         try:
@@ -119,13 +123,13 @@ class App:
         print()
         self.do_delete = ask("Continue", default=True)
 
-
     def _delete_selected(self):
+        deletion_mode = "-D" if self.force_delete else "d"
         if self.do_delete:
             for k in self.selected:
                 b = self.branch_map[k]
                 try:
-                    git["branch", "-d", b]()
+                    git["branch", deletion_mode, b]()
                 except ProcessExecutionError:
                     print(f"Can't delete the branch '{b}'")
         else:
