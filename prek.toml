@@ -19,5 +19,6 @@ hooks = [
         language = "system",
         entry = "uv run poe check",
         files = "\\.py$",
+        pass_filenames = false,
     }
 ]
